@@ -6,7 +6,7 @@ import time
 def handle_get(conn, path):
     # Set up information for each page type
     successful_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
-    failed_meta =  "HTTP/1.0 404 Not Foundr\nContent-Type: text/html\r\n\r\n"
+    failed_meta =  "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n"
     start = "<!DOCTYPE html><html><body>"
     end = "</body></html>"
 
@@ -22,7 +22,12 @@ def handle_get(conn, path):
     web_page = successful_meta + start + index_content + end
 
     if path == '/':
-        pass
+        pass                            # @CTB this approach is a little
+                                        # dangerous in general - it's harder
+                                        # to read, and you might end up
+                                        # "leaking" content that you don't
+                                        # want to, down the road.  But overall
+                                        # not a problem here.
     elif path == '/content':
         web_page = successful_meta + start + content_content + end
     elif path == '/file':
