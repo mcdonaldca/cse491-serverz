@@ -35,7 +35,8 @@ def test_index_page():
                       'This is mcdonaldca\'s web server' + \
                       '<ul><li><a href="/content">Content</a>' + \
                       '<li><a href="/image">Image</a></li>' + \
-                      '<li><a href="/file">File</a></li></ul>' + \
+                      '<li><a href="/file">File</a></li>' + \
+                      '<li><a href="/form">Form</a></li></ul>' + \
                       '</body></html>'
 
     server.handle_connection(conn)

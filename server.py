@@ -3,36 +3,47 @@ import random
 import socket
 import time
 
-def handle_get(conn, path):
-    # Set up information for each page type
-    successful_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
-    failed_meta =  "HTTP/1.0 404 Not Foundr\nContent-Type: text/html\r\n\r\n"
-    start = "<!DOCTYPE html><html><body>"
-    end = "</body></html>"
+# Build various site pages
 
-    index_content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
-                    '<ul><li><a href="/content">Content</a>' + \
-                    '<li><a href="/image">Image</a></li>' + \
-                    '<li><a href="/file">File</a></li></ul>'
-    content_content = "<h1>Hello, world</h1> This is mcdonaldca's content page"
-    file_content = "<h1>Hello, world</h1> This is mcdonaldca's file page"
-    image_content = "<h1>Hello, world</h1> This is mcdonaldca's image page"
-    failed_content = "<h1>Uh Oh Oreo</h1> This is not the page you are looking for"
+def index_page(conn, meta, start, end):
+    content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
+              '<ul><li><a href="/content">Content</a>' + \
+              '<li><a href="/image">Image</a></li>' + \
+              '<li><a href="/file">File</a></li>' + \
+              '<li><a href="/form">Form</a></li></ul>'
+    conn.send(meta + start + content + end)
 
-    web_page = successful_meta + start + index_content + end
+def content_page(conn, meta, start, end):
+    content = '<h1>Hello, world</h1> This is mcdonaldca\'s content page'
+    conn.send(meta + start + content + end)
 
-    if path == '/':
-        pass
-    elif path == '/content':
-        web_page = successful_meta + start + content_content + end
-    elif path == '/file':
-        web_page = successful_meta + start + file_content + end
-    elif path == '/image':
-        web_page = successful_meta + start + image_content + end
-    else:
-        web_page = failed_meta + start + failed_content + end
+def file_page(conn, meta, start, end):
+    content = '<h1>Hello, world</h1> This is mcdonaldca\'s file page'
+    conn.send(meta + start + content + end)
 
-    conn.send(web_page)
+def image_page(conn, meta, start, end):
+    content = '<h1>Hello, world</h1> This is mcdonaldca\'s image page'
+    conn.send(meta + start + content + end)
+
+def form_page(conn, meta, start, end):
+    content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
+              '<ul><li><a href="/content">Content</a>' + \
+              '<li><a href="/image">Image</a></li>' + \
+              '<li><a href="/file">File</a></li>' + \
+              '<li><a href="/form">Form</a></li></ul>'
+    conn.send(meta + start + content + end)
+
+def submit_page(conn, meta, start, end):
+    content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
+              '<ul><li><a href="/content">Content</a>' + \
+              '<li><a href="/image">Image</a></li>' + \
+              '<li><a href="/file">File</a></li>' + \
+              '<li><a href="/form">Form</a></li></ul>'
+    conn.send(meta + start + content + end)
+
+def invalid_page(conn, meta, start, end):
+    content = '<h1>Uh Oh Oreo</h1> This is not the page you are looking for'
+    conn.send(meta + start + content + end)
 
 def handle_post(conn):
     web_page = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + \
@@ -41,18 +52,46 @@ def handle_post(conn):
     conn.send(web_page)
 
 def handle_connection(conn):
-    
-    request = conn.recv(1000)   # Get request information from client
-    type_req = path = request.split()[0]
 
+    # Get request information from client
+    request = conn.recv(1000)   
+
+    # Find type of request (GET or POST)
+    try:
+        type_req = request.split()[0]
+    except IndexError:
+        type_req = "GET"
+
+    # Find path
+    try:
+        path = request.split()[1]
+    except IndexError:          
+        path = "/404"
+
+    # HTML for every page
+    successful_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
+    failed_meta =  "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n"
+    start = "<!DOCTYPE html><html><body>"
+    end = "</body></html>"
+
+    
     if type_req == "GET":
     
-        try:
-            path = request.split()[1]
-        except IndexError:          # No code breaks plz
-            path = "/404"
-
-        handle_get(conn, path)
+        if path == '/':
+            index_page(conn, successful_meta, start, end)
+        elif path == '/content':
+            content_page(conn, successful_meta, start, end)
+        elif path == '/file':
+            file_page(conn, successful_meta, start, end)
+        elif path == '/image':
+            image_page(conn, successful_meta, start, end)
+        elif path == '/form':
+            form_page(conn, successful_meta, start, end)
+        # won't actually work when using form data; temporary
+        elif path == '/submit':
+            submit_page(conn, successful_meta, start, end)
+        else:
+            invalid_page(conn, failed_meta, start, end)
 
     elif type_req == "POST":
         
