@@ -25,7 +25,8 @@ class FakeConnection(object):
     def close(self):
         self.is_closed = True
 
-# Test a basic GET call.
+
+# Simple tests for each page of site
 
 def test_index_page():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
@@ -75,6 +76,31 @@ def test_file_page():
     server.handle_connection(conn)
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
+
+def test_form_page():
+    conn = FakeConnection("GET /form HTTP/1.0\r\n\r\n")
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-Type: text/html\r\n\r\n' + \
+                      '<!DOCTYPE html><html><body><h1>Who goes there?</h1> ' + \
+                      'This is mcdonaldca\'s web server' + \
+                      '<form action="submit" method="GET">' + \
+                      '<input type="text" name="firstname">' + \
+                      '<input type="text" name="lastname"></form></body></html>'
+
+    server.handle_connection(conn)
+
+    assert conn.sent == expected_return, 'Wanted: %s Got: %s' % (repr(expected_return), repr(conn.sent))
+
+##def test_submit_page():
+##    conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
+##    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+##                      'Content-Type: text/html\r\n\r\n' + \
+##                      '<!DOCTYPE html><html><body><h1>Hello, world</h1> ' + \
+##                      'This is mcdonaldca\'s file page</body></html>'
+##
+##    server.handle_connection(conn)
+##
+##    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
 
 def test_post_request():
     conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")

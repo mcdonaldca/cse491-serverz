@@ -26,11 +26,10 @@ def image_page(conn, meta, start, end):
     conn.send(meta + start + content + end)
 
 def form_page(conn, meta, start, end):
-    content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
-              '<ul><li><a href="/content">Content</a>' + \
-              '<li><a href="/image">Image</a></li>' + \
-              '<li><a href="/file">File</a></li>' + \
-              '<li><a href="/form">Form</a></li></ul>'
+    content = '<h1>Who goes there?</h1> This is mcdonaldca\'s web server' + \
+              '<form action="submit" method="GET">' + \
+              '<input type="text" name="firstname">' + \
+              '<input type="text" name="lastname"></form>'
     conn.send(meta + start + content + end)
 
 def submit_page(conn, meta, start, end):
