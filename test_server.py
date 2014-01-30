@@ -83,7 +83,7 @@ def test_form_page():
                       'Content-Type: text/html\r\n\r\n' + \
                       '<!DOCTYPE html><html><body><h1>Who goes there?</h1> ' + \
                       'This is mcdonaldca\'s web server' + \
-                      '<form action="submit" method="GET">' + \
+                      '<form action="submit" method="POST">' + \
                       '<input type="text" name="firstname">' + \
                       '<input type="text" name="lastname">' + \
                       '<input type="submit" value="Submit"></form></body></html>'
@@ -105,8 +105,10 @@ def test_form_page():
 ##
 ##    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
 
+# Tests POST version of form submission
+
 def test_submit_page():
-    conn = FakeConnection("GET /submit?firstname=Caitlin&lastname=McDonald HTTP/1.0\r\n\r\n")
+    conn = FakeConnection("POST /submit HTTP/1.0 firstname=Caitlin&lastname=McDonald\r\n\r\n")
     expected_return = 'HTTP/1.0 200 OK\r\n' + \
                       'Content-Type: text/html\r\n\r\n' + \
                       '<!DOCTYPE html><html><body><h1>Hello, Ms. Caitlin McDonald</h1> ' + \
