@@ -29,16 +29,24 @@ def image_page(conn, meta, start, end):
 def form_page(conn, meta, start, end):
     content = '<h1>Who goes there?</h1> This is mcdonaldca\'s web server' + \
               '<form action="submit" method="POST">' + \
-              #'<form action="submit" method="GET">' + \
               '<input type="text" name="firstname">' + \
               '<input type="text" name="lastname">' + \
               '<input type="submit" value="Submit"></form>'
     conn.send(meta + start + content + end)
 
-def submit_page(conn, meta, start, end, path):
-    o = urlparse(path)
-    data = parse_qs(o.query)
-    content = '<h1>Hello, Ms. %s %s</h1> This is mcdonaldca\'s web server' % (data["firstname"][0], data["lastname"][0])
+def submit_page(conn, meta, start, end, information):
+    # For GET
+##    o = urlparse(information)
+##    data = parse_qs(o.query)
+##    content = '<h1>Hello, Ms. %s %s</h1> This is mcdonaldca\'s web server' % (data["firstname"][0], data["lastname"][0])
+
+    # For POST
+    data = parse_qs(information)
+
+    firstname = data["firstname"][0]
+    lastname = data["lastname"][0]
+    
+    content = '<h1>Hello, Ms. %s %s</h1> This is mcdonaldca\'s web server' % (firstname, lastname)
     conn.send(meta + start + content + end)
 
 def invalid_page(conn, meta, start, end):
@@ -70,7 +78,7 @@ def handle_connection(conn):
 
     # HTML for every page
     successful_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
-    post_meta =  "HTTP/1.0 200 OK\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n"
+    post_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
     failed_meta =  "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n"
     start = "<!DOCTYPE html><html><body>"
     end = "</body></html>"
@@ -96,7 +104,11 @@ def handle_connection(conn):
     elif type_req == "POST":
         
         if '/submit' in path:
-            submit_page(conn, post_meta, start, end, path)
+            # For GET
+            # submit_page(conn, post_meta, start, end, path)
+
+            # For POST
+            submit_page(conn, post_meta, start, end, request.split()[-1])
         else:
             invalid_page(conn, failed_meta, start, end)
         
