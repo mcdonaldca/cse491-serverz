@@ -2,6 +2,7 @@
 import random
 import socket
 import time
+from urlparse import *
 
 # Build various site pages
 
@@ -27,17 +28,17 @@ def image_page(conn, meta, start, end):
 
 def form_page(conn, meta, start, end):
     content = '<h1>Who goes there?</h1> This is mcdonaldca\'s web server' + \
-              '<form action="submit" method="GET">' + \
+              '<form action="submit" method="POST">' + \
+              #'<form action="submit" method="GET">' + \
               '<input type="text" name="firstname">' + \
-              '<input type="text" name="lastname"></form>'
+              '<input type="text" name="lastname">' + \
+              '<input type="submit" value="Submit"></form>'
     conn.send(meta + start + content + end)
 
-def submit_page(conn, meta, start, end):
-    content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
-              '<ul><li><a href="/content">Content</a>' + \
-              '<li><a href="/image">Image</a></li>' + \
-              '<li><a href="/file">File</a></li>' + \
-              '<li><a href="/form">Form</a></li></ul>'
+def submit_page(conn, meta, start, end, path):
+    o = urlparse(path)
+    data = parse_qs(o.query)
+    content = '<h1>Hello, Ms. %s %s</h1> This is mcdonaldca\'s web server' % (data["firstname"][0], data["lastname"][0])
     conn.send(meta + start + content + end)
 
 def invalid_page(conn, meta, start, end):
@@ -69,6 +70,7 @@ def handle_connection(conn):
 
     # HTML for every page
     successful_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
+    post_meta =  "HTTP/1.0 200 OK\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n"
     failed_meta =  "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n"
     start = "<!DOCTYPE html><html><body>"
     end = "</body></html>"
@@ -86,15 +88,17 @@ def handle_connection(conn):
             image_page(conn, successful_meta, start, end)
         elif path == '/form':
             form_page(conn, successful_meta, start, end)
-        # won't actually work when using form data; temporary
-        elif path == '/submit':
-            submit_page(conn, successful_meta, start, end)
+        elif '/submit' in path:
+            submit_page(conn, successful_meta, start, end, path)
         else:
             invalid_page(conn, failed_meta, start, end)
 
     elif type_req == "POST":
         
-        handle_post(conn)
+        if '/submit' in path:
+            submit_page(conn, post_meta, start, end, path)
+        else:
+            invalid_page(conn, failed_meta, start, end)
         
     conn.close()
 

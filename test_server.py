@@ -85,29 +85,43 @@ def test_form_page():
                       'This is mcdonaldca\'s web server' + \
                       '<form action="submit" method="GET">' + \
                       '<input type="text" name="firstname">' + \
-                      '<input type="text" name="lastname"></form></body></html>'
+                      '<input type="text" name="lastname">' + \
+                      '<input type="submit" value="Submit"></form></body></html>'
 
     server.handle_connection(conn)
 
     assert conn.sent == expected_return, 'Wanted: %s Got: %s' % (repr(expected_return), repr(conn.sent))
 
+# Tests GET version of form submission
+
 ##def test_submit_page():
-##    conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
+##    conn = FakeConnection("GET /submit?firstname=Caitlin&lastname=McDonald HTTP/1.0\r\n\r\n")
 ##    expected_return = 'HTTP/1.0 200 OK\r\n' + \
 ##                      'Content-Type: text/html\r\n\r\n' + \
-##                      '<!DOCTYPE html><html><body><h1>Hello, world</h1> ' + \
-##                      'This is mcdonaldca\'s file page</body></html>'
+##                      '<!DOCTYPE html><html><body><h1>Hello, Ms. Caitlin McDonald</h1> ' + \
+##                      'This is mcdonaldca\'s web server</body></html>'
 ##
 ##    server.handle_connection(conn)
 ##
 ##    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
 
-def test_post_request():
-    conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")
-    expected_return = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + \
-                      "<!DOCTYPE html><html><body>" + \
-                      "<h1>Hello, World</h1></body></html>"
-    
+def test_submit_page():
+    conn = FakeConnection("GET /submit?firstname=Caitlin&lastname=McDonald HTTP/1.0\r\n\r\n")
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-Type: text/html\r\n\r\n' + \
+                      '<!DOCTYPE html><html><body><h1>Hello, Ms. Caitlin McDonald</h1> ' + \
+                      'This is mcdonaldca\'s web server</body></html>'
+
     server.handle_connection(conn)
-    
+
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
+
+##def test_post_request():
+##    conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")
+##    expected_return = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + \
+##                      "<!DOCTYPE html><html><body>" + \
+##                      "<h1>Hello, World</h1></body></html>"
+##    
+##    server.handle_connection(conn)
+##    
+##    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
