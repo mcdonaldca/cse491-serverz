@@ -3,3 +3,4 @@
  * Initialized repository, created server.py and README.
  * Updated server.py to create a simple website
  * Added some base pages for the site. No content currently.
+ * Created form functionality (GET and POST)
