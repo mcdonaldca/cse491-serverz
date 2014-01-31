@@ -25,7 +25,8 @@ class FakeConnection(object):
     def close(self):
         self.is_closed = True
 
-# Test a basic GET call.
+
+# Simple tests for each page of site
 
 def test_index_page():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
@@ -35,7 +36,8 @@ def test_index_page():
                       'This is mcdonaldca\'s web server' + \
                       '<ul><li><a href="/content">Content</a>' + \
                       '<li><a href="/image">Image</a></li>' + \
-                      '<li><a href="/file">File</a></li></ul>' + \
+                      '<li><a href="/file">File</a></li>' + \
+                      '<li><a href="/form">Form</a></li></ul>' + \
                       '</body></html>'
 
     server.handle_connection(conn)
@@ -75,12 +77,53 @@ def test_file_page():
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
 
-def test_post_request():
-    conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")
-    expected_return = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + \
-                      "<!DOCTYPE html><html><body>" + \
-                      "<h1>Hello, World</h1></body></html>"
-    
+def test_form_page():
+    conn = FakeConnection("GET /form HTTP/1.0\r\n\r\n")
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-Type: text/html\r\n\r\n' + \
+                      '<!DOCTYPE html><html><body><h1>Who goes there?</h1> ' + \
+                      'This is mcdonaldca\'s web server' + \
+                      '<form action="submit" method="POST">' + \
+                      '<input type="text" name="firstname">' + \
+                      '<input type="text" name="lastname">' + \
+                      '<input type="submit" value="Submit"></form></body></html>'
+
     server.handle_connection(conn)
-    
+
+    assert conn.sent == expected_return, 'Wanted: %s Got: %s' % (repr(expected_return), repr(conn.sent))
+
+# Tests GET version of form submission
+
+##def test_submit_page():
+##    conn = FakeConnection("GET /submit?firstname=Caitlin&lastname=McDonald HTTP/1.0\r\n\r\n")
+##    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+##                      'Content-Type: text/html\r\n\r\n' + \
+##                      '<!DOCTYPE html><html><body><h1>Hello, Ms. Caitlin McDonald</h1> ' + \
+##                      'This is mcdonaldca\'s web server</body></html>'
+##
+##    server.handle_connection(conn)
+##
+##    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
+
+# Tests POST version of form submission
+
+def test_submit_page():
+    conn = FakeConnection("POST /submit HTTP/1.0 firstname=Caitlin&lastname=McDonald\r\n\r\n")
+    expected_return = 'HTTP/1.0 200 OK\r\n' + \
+                      'Content-Type: text/html\r\n\r\n' + \
+                      '<!DOCTYPE html><html><body><h1>Hello, Ms. Caitlin McDonald</h1> ' + \
+                      'This is mcdonaldca\'s web server</body></html>'
+
+    server.handle_connection(conn)
+
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
+
+##def test_post_request():
+##    conn = FakeConnection("POST / HTTP/1.1\r\n\r\n")
+##    expected_return = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + \
+##                      "<!DOCTYPE html><html><body>" + \
+##                      "<h1>Hello, World</h1></body></html>"
+##    
+##    server.handle_connection(conn)
+##    
+##    assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent))
