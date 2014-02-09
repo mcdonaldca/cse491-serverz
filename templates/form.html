@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Who goes there</h1>
+<p>Pick your poison:</p>
+
+<h2>GET Form</h2>
+<form action = 'submit'>
+  Enter your first & last name<br />
+  <input type='text' name='firstname'><br />
+  <input type='text' name='lastname'><br />
+  <input type='submit' value='Submit'>
+</form>
+
+<h2>POST Form</h2>
+<form action = 'submit' method='POST'>
+  Enter your first & last name.<br />
+  <input type='text' name='firstname'><br />
+  <input type='text' name='lastname'><br />
+  <input type='submit' value='Submit'>
+</form><br />
+
+<p>
+  <a href="/">Head home?</a>
+</p>
+
+{% endblock %}

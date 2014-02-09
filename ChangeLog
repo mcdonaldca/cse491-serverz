@@ -13,3 +13,7 @@
 2014-01-30  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
 
  * Created form functionality (GET and POST)
+
+2014-02-06  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+ 
+ * Updated to support arbitrary sized requests
