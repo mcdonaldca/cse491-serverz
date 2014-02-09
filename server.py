@@ -15,7 +15,7 @@ def handle_connection(conn):
     while request[-4:] != "\r\n\r\n":
         request += conn.recv(1)
 
-    
+    print repr(request)
 
     # Separate the status from the necessary information from header
     # Split only once as teh request status is a single line
@@ -23,7 +23,8 @@ def handle_connection(conn):
 
     # Gather specific information from the header
     # Last two items in the list are empty strings (hence the [:-2])
-    header_information = {}    
+    header_information = {}
+    
     for line in data.split('\r\n')[:-2]:
         key, value = line.split(':', 1)
         header_information[key] = value
@@ -64,7 +65,7 @@ def handle_connection(conn):
         while len(content) < int(header_information['Content-Length']):
             content += conn.recv(1)
 
-        # Using CGI because Titus told us to
+        # Using CGI.FieldStorage to support multipart/form-data
         fs= FieldStorage(
             fp=StringIO(content),               \
             headers=header_information,         \
