@@ -17,3 +17,5 @@
 2014-02-06  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
  
  * Updated to support arbitrary sized requests
+ * POST requests now use CGI library
+ * Pages now are templated using jinja2
