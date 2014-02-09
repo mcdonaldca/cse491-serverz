@@ -62,7 +62,10 @@ def handle_post(conn):
 def handle_connection(conn):
 
     # Get request information from client
-    request = conn.recv(1000)   
+    # Will grab arbitrarily (n) sized information
+    request = conn.recv(1)
+    while request[-4:] != "\r\n\r\n":
+        request += conn.recv(1)
 
     # Find type of request (GET or POST)
     try:
