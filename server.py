@@ -2,122 +2,105 @@
 import random
 import socket
 import time
-from urlparse import *
-
-# Build various site pages
-
-def index_page(conn, meta, start, end):
-    content = '<h1>Hello, world</h1> This is mcdonaldca\'s web server' + \
-              '<ul><li><a href="/content">Content</a>' + \
-              '<li><a href="/image">Image</a></li>' + \
-              '<li><a href="/file">File</a></li>' + \
-              '<li><a href="/form">Form</a></li></ul>'
-    conn.send(meta + start + content + end)
-
-def content_page(conn, meta, start, end):
-    content = '<h1>Hello, world</h1> This is mcdonaldca\'s content page'
-    conn.send(meta + start + content + end)
-
-def file_page(conn, meta, start, end):
-    content = '<h1>Hello, world</h1> This is mcdonaldca\'s file page'
-    conn.send(meta + start + content + end)
-
-def image_page(conn, meta, start, end):
-    content = '<h1>Hello, world</h1> This is mcdonaldca\'s image page'
-    conn.send(meta + start + content + end)
-
-def form_page(conn, meta, start, end):
-    content = '<h1>Who goes there?</h1> This is mcdonaldca\'s web server' + \
-              '<form action="submit" method="POST">' + \
-              '<input type="text" name="firstname">' + \
-              '<input type="text" name="lastname">' + \
-              '<input type="submit" value="Submit"></form>'
-    conn.send(meta + start + content + end)
-
-def submit_page(conn, meta, start, end, information):
-    # For GET
-##    o = urlparse(information)
-##    data = parse_qs(o.query)
-##    content = '<h1>Hello, Ms. %s %s</h1> This is mcdonaldca\'s web server' % (data["firstname"][0], data["lastname"][0])
-
-    # For POST
-    data = parse_qs(information)
-
-    firstname = data["firstname"][0]
-    lastname = data["lastname"][0]
-    
-    content = '<h1>Hello, Ms. %s %s</h1> This is mcdonaldca\'s web server' % (firstname, lastname)
-    conn.send(meta + start + content + end)
-
-def invalid_page(conn, meta, start, end):
-    content = '<h1>Uh Oh Oreo</h1> This is not the page you are looking for'
-    conn.send(meta + start + content + end)
-
-def handle_post(conn):
-    web_page = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n" + \
-               "<!DOCTYPE html><html><body>" + \
-               "<h1>Hello, World</h1></body></html>"
-    conn.send(web_page)
+from urlparse import urlparse, parse_qs
+from jinja2 import FileSystemLoader, Environment
+from cgi import FieldStorage
+from StringIO import StringIO
 
 def handle_connection(conn):
 
     # Get request information from client
-    request = conn.recv(1000)   
+    # Will grab arbitrarily (n) sized information
+    request = conn.recv(1)
+    while request[-4:] != "\r\n\r\n":
+        request += conn.recv(1)
 
-    # Find type of request (GET or POST)
-    try:
-        type_req = request.split()[0]
-    except IndexError:
-        type_req = "GET"
+    print repr(request)
 
-    # Find path
-    try:
-        path = request.split()[1]
-    except IndexError:          
-        path = "/404"
+    # Separate the status from the necessary information from header
+    # Split only once as teh request status is a single line
+    request, data = request.split("\r\n", 1)
 
-    # HTML for every page
-    successful_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
-    post_meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
-    failed_meta =  "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n"
-    start = "<!DOCTYPE html><html><body>"
-    end = "</body></html>"
-
+    # Gather specific information from the header
+    # Last two items in the list are empty strings (hence the [:-2])
+    header_information = {}
     
-    if type_req == "GET":
-    
-        if path == '/':
-            index_page(conn, successful_meta, start, end)
-        elif path == '/content':
-            content_page(conn, successful_meta, start, end)
-        elif path == '/file':
-            file_page(conn, successful_meta, start, end)
-        elif path == '/image':
-            image_page(conn, successful_meta, start, end)
-        elif path == '/form':
-            form_page(conn, successful_meta, start, end)
-        elif '/submit' in path:
-            submit_page(conn, successful_meta, start, end, path)
-        else:
-            invalid_page(conn, failed_meta, start, end)
+    for line in data.split('\r\n')[:-2]:
+        key, value = line.split(':', 1)
+        header_information[key] = value
 
-    elif type_req == "POST":
-        
-        if '/submit' in path:
-            # For GET
-            # submit_page(conn, post_meta, start, end, path)
+    # Split into thre pieces of information:
+    # HTTP method -- path -- HTTP version
+    request = request.split(' ', 2)
 
-            # For POST
-            submit_page(conn, post_meta, start, end, request.split()[-1])
-        else:
-            invalid_page(conn, failed_meta, start, end)
+
+    path_information = urlparse(request[1])
+
+    # Link paths to their associated html pages
+    paths = {
+        '/'        : 'index.html',   \
+        '/content' : 'content.html', \
+        '/file'    : 'file.html',    \
+        '/image'   : 'image.html',   \
+        '/form'    : 'form.html',    \
+        '/submit'  : 'submit.html',  \
+        }
+
+    # Load templates & prepare basic HTML
+    loader = FileSystemLoader('./templates')
+    env = Environment(loader=loader)
+    meta =  "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
+    content = ''
+
+    # Grab query information from GET request
+    data = parse_qs(path_information.query)
+    # Query info is stored in an odd way
+    # Change the values from ['value'] to 'value'
+    for key, value in data.items():
+        data[key] = data[key][0]
+
+    # Extra handling for POST request
+    if request[0] == 'POST':
+        # Continue to gather the content body
+        while len(content) < int(header_information['Content-Length']):
+            content += conn.recv(1)
+
+        # Using CGI.FieldStorage to support multipart/form-data
+        fs= FieldStorage(
+            fp=StringIO(content),               \
+            headers=header_information,         \
+            environ={'REQUEST_METHOD' : 'POST'} \
+            )
+
+        # Take parsed information and add it to our data dictionary
+        additional_data = {}
+        for item in fs.keys():
+            additional_data[item] = fs[item].value
+        data.update(additional_data)
+
+    # Validate requested path
+    if path_information.path in paths:
+        template = env.get_template(paths[path_information.path])
+
+    # Send to 404 if not a valid path
+    else:
+        meta = "HTTP/1.0 404 Not Found\r\n\r\n"
+        data['path'] = path_information.path
+        template = env.get_template('404.html')
         
+
+    # Build our webpage
+    webpage = meta + template.render(data)
+
+    # Send that puppy
+    conn.send(webpage)
     conn.close()
 
 def main():
     s = socket.socket()         # Create a socket object
     host = socket.getfqdn()     # Get local machine name
     port = random.randint(8000, 9999)
+#    port = 3748
     s.bind((host, port))        # Bind to the port
 
     print 'Starting server on', host, port

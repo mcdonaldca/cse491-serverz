@@ -1,6 +1,21 @@
 2014-01-07  Titus Brown  <t@Titus-MacBook-Air-2.local>
 
  * Initialized repository, created server.py and README.
+
+2014-01-16  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+
  * Updated server.py to create a simple website
+
+2014-01-23  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+
  * Added some base pages for the site. No content currently.
+
+2014-01-30  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+
  * Created form functionality (GET and POST)
+
+2014-02-06  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+ 
+ * Updated to support arbitrary sized requests
+ * POST requests now use CGI library
+ * Pages now are templated using jinja2
