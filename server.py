@@ -12,7 +12,11 @@ def handle_connection(conn):
     # Will grab arbitrarily (n) sized information
     request = conn.recv(1)
     while request[-4:] != "\r\n\r\n":
-        request += conn.recv(1)
+        add = conn.recv(1)
+        if add:
+            request += add
+        else:
+            return
 
     # Separate the status from the necessary information from header
     # Split only once as teh request status is a single line
