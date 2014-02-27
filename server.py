@@ -2,17 +2,23 @@
 import random
 import socket
 import time
-from urlparse import urlparse, parse_qs
+from urlparse import urlparse
 from StringIO import StringIO
 from app import make_app
+from wsgiref.validate import validator
+from sys import stderr
 
-def handle_connection(conn):
+def handle_connection(conn, port):
 
     # Get request information from client
     # Will grab arbitrarily (n) sized information
     request = conn.recv(1)
     while request[-4:] != "\r\n\r\n":
-        request += conn.recv(1)
+        add = conn.recv(1)
+        if add:
+            request += add
+        else:
+            return
 
     # Separate the status from the necessary information from header
     # Split only once as teh request status is a single line
@@ -34,34 +40,62 @@ def handle_connection(conn):
 
     # Build the environ object
     environ = {}
-    path = urlparse(req.split(' ', 3)[1])
     environ['REQUEST_METHOD'] = 'GET'
-    environ['PATH_INFO'] = path.path
-    environ['QUERY_STRING'] = path.query
+    environ['PATH_INFO'] = path_information.path
+    environ['QUERY_STRING'] = path_information.query
     environ['CONTENT_TYPE'] = 'text/html'
-    environ['CONTENT_LENGTH'] = 0
+    environ['CONTENT_LENGTH'] = str(0)
+    environ['SCRIPT_NAME'] = ''
+    environ['SERVER_NAME'] = socket.getfqdn()
+    environ['SERVER_PORT'] = str(port)
+    environ['wsgi.version'] = (1, 0)
+    environ['wsgi.errors'] = stderr
+    environ['wsgi.multithread'] = False
+    environ['wsgi.multiprocess'] = False
+    environ['wsgi.run_once'] = False
+    environ['wsgi.url_scheme'] = 'http'
+    
 
+    # Start response function for WSGI interface
     def start_response(status, response_headers):
+        """Send the initial HTTP header, with status code
+            and any other provided header information"""
+
+        # Send HTTP status
         conn.send('HTTP/1.0')
         conn.send(status)
         conn.send('\r\n')
+
+        # Send the response headers
         for pair in response_headers:
             key, value = pair
             conn.send(key + ": " +  value + '\r\n')
         conn.send('\r\n')
 
+    # If we received a POST request, collect the rest of the data
     content = ''
-    if req.startswith('POST '):
+    if request[0] == "POST":
+        # Set up extra environ variables
         environ['REQUEST_METHOD'] = 'POST'
         environ['CONTENT_LENGTH'] = header_information['Content-Length']
         environ['CONTENT_TYPE'] = header_information['Content-Type']
-        while len(content) < int(header_information['Content-Length']):
+
+
+        # Continue receiving content up to content-length
+        content_length = int(header_information['Content-Length'])
+        while len(content) < content_length:
             content += conn.recv(1)
 
+    # Set up a StringIO to mimic stdin for the FieldStorage in the app
     environ['wsgi.input'] = StringIO(content)
+
+    # Get the application
     application = make_app()
+    application = validator(application)
+
     result = application(environ, start_response)
-    
+
+    # Serve the processed data
     for data in result:
         conn.send(data)
 
@@ -84,7 +118,7 @@ def main():
         # Establish connection with client.    
         c, (client_host, client_port) = s.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(c)
+        handle_connection(c, client_port)
 
 if __name__ == '__main__':
     main()
