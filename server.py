@@ -12,7 +12,11 @@ def handle_connection(conn):
     # Will grab arbitrarily (n) sized information
     request = conn.recv(1)
     while request[-4:] != "\r\n\r\n":
-        request += conn.recv(1)
+        add = conn.recv(1)
+        if add:
+            request += add
+        else:
+            return
 
     # Separate the status from the necessary information from header
     # Split only once as teh request status is a single line
@@ -34,10 +38,9 @@ def handle_connection(conn):
 
     # Build the environ object
     environ = {}
-    path = urlparse(req.split(' ', 3)[1])
     environ['REQUEST_METHOD'] = 'GET'
-    environ['PATH_INFO'] = path.path
-    environ['QUERY_STRING'] = path.query
+    environ['PATH_INFO'] = path_information.path
+    environ['QUERY_STRING'] = path_information.query
     environ['CONTENT_TYPE'] = 'text/html'
     environ['CONTENT_LENGTH'] = 0
 
@@ -51,7 +54,7 @@ def handle_connection(conn):
         conn.send('\r\n')
 
     content = ''
-    if req.startswith('POST '):
+    if request[0] == "POST":
         environ['REQUEST_METHOD'] = 'POST'
         environ['CONTENT_LENGTH'] = header_information['Content-Length']
         environ['CONTENT_TYPE'] = header_information['Content-Type']
