@@ -8,6 +8,19 @@ from app import make_app
 from wsgiref.validate import validator
 from sys import stderr
 
+## Quixhote
+# import quixote
+# from quixote.demo.altdemo import create_publisher
+# p = create_publisher()
+##
+
+## Image app
+# import quixote
+# import imageapp
+# imageapp.setup()
+# p = imageapp.create_publisher()
+##
+
 def handle_connection(conn, port):
 
     # Get request information from client
@@ -54,6 +67,7 @@ def handle_connection(conn, port):
     environ['wsgi.multiprocess'] = False
     environ['wsgi.run_once'] = False
     environ['wsgi.url_scheme'] = 'http'
+    env['HTTP_COOKIE'] = headers['cookie'] if 'cookie' in headers.keys() else ''
     
 
     # Start response function for WSGI interface
@@ -91,6 +105,15 @@ def handle_connection(conn, port):
 
     # Get the application
     application = make_app()
+
+    ## Quixote alt.demo
+    # wsgi_app = quixote.get_wsgi_app()
+    ##
+
+    ## Imageapp
+    # wsgi_app = quixote.get_wsgi_app()
+    ##
+    
     application = validator(application)
 
     result = application(environ, start_response)
