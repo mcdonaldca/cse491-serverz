@@ -33,7 +33,7 @@ def test_index_page():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
 
     server.handle_connection(conn)
-
+    
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert 'This is mcdonaldca\'s web server' in conn.sent
     
@@ -122,5 +122,30 @@ firstname={}&lastname={}".format(first, last)
     assert 'Hello, Ms. {} {}'.format(first, last) in conn.sent
 
 def test_submit_page_multipart():
-    #HALP
-    assert "wow. such confusion. much lost."
+    first = 'Caitlin'
+    last = 'McDonald'
+
+    header_message = 'POST /submit HTTP/1.0\r\n\
+Content-Length: 374\r\n\
+Content-Type: multipart/form-data;\
+boundary=32452685f36942178a5f36fd94e34b63\r\n\r\n\
+--32452685f36942178a5f36fd94e34b63\r\n\
+Content-Disposition: form-data; name="lastname";\
+ filename="lastname"\r\n\r\n\
+{}\r\n\
+--32452685f36942178a5f36fd94e34b63\r\n\
+Content-Disposition: form-data; name="firstname";\
+ filename="firstname"\r\n\r\n\
+{}\r\n\
+--32452685f36942178a5f36fd94e34b63\r\n\
+Content-Disposition: form-data; name="key\
+filename="key"\r\n\r\n\
+value\r\n\
+--32452685f36942178a5f36fd94e34b63--\r\n'.format(last, first)
+
+    conn = FakeConnection(header_message)
+
+    server.handle_connection(conn)
+
+    assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
+    assert 'Hello, Ms. {} {}'.format(first, last) in conn.sent

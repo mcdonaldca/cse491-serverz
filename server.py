@@ -18,6 +18,8 @@ def handle_connection(conn):
         else:
             return
 
+    print repr(request)
+
     # Separate the status from the necessary information from header
     # Split only once as teh request status is a single line
     request, data = request.split("\r\n", 1)

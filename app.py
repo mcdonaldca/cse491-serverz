@@ -29,10 +29,10 @@ def simple_app(environ, start_response):
     response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
 
     if environ['PATH_INFO'] in paths:
-        status = '200 OK'
+        status = ' 200 OK'
         template = env.get_template(paths[environ['PATH_INFO']])
     else:
-        status = '404 Not Found'
+        status = ' 404 Not Found'
         template = env.get_template('404.html')
 
     data = {}
