@@ -19,3 +19,11 @@
  * Updated to support arbitrary sized requests
  * POST requests now use CGI library
  * Pages now are templated using jinja2
+
+2014-02-13  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+
+ * Modified code to follow the WSGI app specification
+
+2014-02-20  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
+
+2014-02-27  Caitlin McDonald  <caitlin.adele.mcdonald@gmail.com>
