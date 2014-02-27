@@ -44,27 +44,42 @@ def handle_connection(conn):
     environ['CONTENT_TYPE'] = 'text/html'
     environ['CONTENT_LENGTH'] = 0
 
+    # Start response function for WSGI interface
     def start_response(status, response_headers):
+        """Send the initial HTTP header, with status code
+            and any other provided header information"""
+
+        # Send HTTP status
         conn.send('HTTP/1.0')
         conn.send(status)
         conn.send('\r\n')
+
+        # Send the response headers
         for pair in response_headers:
             key, value = pair
             conn.send(key + ": " +  value + '\r\n')
         conn.send('\r\n')
 
+    # If we received a POST request, collect the rest of the data
     content = ''
     if request[0] == "POST":
+        # Set up extra environ variables
         environ['REQUEST_METHOD'] = 'POST'
         environ['CONTENT_LENGTH'] = header_information['Content-Length']
         environ['CONTENT_TYPE'] = header_information['Content-Type']
+
+        # Continue receiving content up to content-length
         while len(content) < int(header_information['Content-Length']):
             content += conn.recv(1)
 
+    # Set up a StringIO to mimic stdin for the FieldStorage in the app
     environ['wsgi.input'] = StringIO(content)
+
+    # Get the application
     application = make_app()
     result = application(environ, start_response)
-    
+
+    # Serve the processed data
     for data in result:
         conn.send(data)
 

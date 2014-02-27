@@ -20,13 +20,13 @@ def simple_app(environ, start_response):
         '/file'    : 'file.html',    \
         '/image'   : 'image.html',   \
         '/form'    : 'form.html',    \
-        '/submit'  : 'submit.html',  \
+        '/submit'  : 'submit.html'
         }
 
     # Load templates
     loader = FileSystemLoader('./templates')
     env = Environment(loader=loader)
-    response_headers = [('Content-type', 'text/plain')]
+    response_headers = [('Content-type', 'text/html; charset="UTF-8"')]
 
     if environ['PATH_INFO'] in paths:
         status = '200 OK'
@@ -38,7 +38,7 @@ def simple_app(environ, start_response):
     data = {}
     qs = parse_qs(environ['QUERY_STRING']).iteritems()
     for key, value in qs:
-        data[key] = data[key][0]
+        data[key] = value[0]
     data['path'] = environ['PATH_INFO']
 
     # Grab POST args if there are any
