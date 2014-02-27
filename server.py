@@ -2,11 +2,13 @@
 import random
 import socket
 import time
-from urlparse import urlparse, parse_qs
+from urlparse import urlparse
 from StringIO import StringIO
 from app import make_app
+from wsgiref.validate import validator
+from sys import stderr
 
-def handle_connection(conn):
+def handle_connection(conn, port):
 
     # Get request information from client
     # Will grab arbitrarily (n) sized information
@@ -17,8 +19,6 @@ def handle_connection(conn):
             request += add
         else:
             return
-
-    print repr(request)
 
     # Separate the status from the necessary information from header
     # Split only once as teh request status is a single line
@@ -44,7 +44,17 @@ def handle_connection(conn):
     environ['PATH_INFO'] = path_information.path
     environ['QUERY_STRING'] = path_information.query
     environ['CONTENT_TYPE'] = 'text/html'
-    environ['CONTENT_LENGTH'] = 0
+    environ['CONTENT_LENGTH'] = str(0)
+    environ['SCRIPT_NAME'] = ''
+    environ['SERVER_NAME'] = socket.getfqdn()
+    environ['SERVER_PORT'] = str(port)
+    environ['wsgi.version'] = (1, 0)
+    environ['wsgi.errors'] = stderr
+    environ['wsgi.multithread'] = False
+    environ['wsgi.multiprocess'] = False
+    environ['wsgi.run_once'] = False
+    environ['wsgi.url_scheme'] = 'http'
+    
 
     # Start response function for WSGI interface
     def start_response(status, response_headers):
@@ -70,8 +80,10 @@ def handle_connection(conn):
         environ['CONTENT_LENGTH'] = header_information['Content-Length']
         environ['CONTENT_TYPE'] = header_information['Content-Type']
 
+
         # Continue receiving content up to content-length
-        while len(content) < int(header_information['Content-Length']):
+        content_length = int(header_information['Content-Length'])
+        while len(content) < content_length:
             content += conn.recv(1)
 
     # Set up a StringIO to mimic stdin for the FieldStorage in the app
@@ -79,6 +91,8 @@ def handle_connection(conn):
 
     # Get the application
     application = make_app()
+    application = validator(application)
+
     result = application(environ, start_response)
 
     # Serve the processed data
@@ -104,7 +118,7 @@ def main():
         # Establish connection with client.    
         c, (client_host, client_port) = s.accept()
         print 'Got connection from', client_host, client_port
-        handle_connection(c)
+        handle_connection(c, client_port)
 
 if __name__ == '__main__':
     main()

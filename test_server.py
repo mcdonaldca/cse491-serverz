@@ -32,7 +32,7 @@ class FakeConnection(object):
 def test_index_page():
     conn = FakeConnection("GET / HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
     
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert 'This is mcdonaldca\'s web server' in conn.sent
@@ -40,7 +40,7 @@ def test_index_page():
 def test_content_page():
     conn = FakeConnection("GET /content HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert 'For a "content page" there appears to be very little content...' in conn.sent
@@ -49,25 +49,23 @@ def test_content_page():
 def test_image_page():
     conn = FakeConnection("GET /image HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
-    assert 'No pretty picture here. #deception' in conn.sent
 
 
 def test_file_page():
     conn = FakeConnection("GET /file HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
-    assert 'This is the file-less file page' in conn.sent
 
 
 def test_form_page():
     conn = FakeConnection("GET /form HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert '<form action = \'submit\'>' in conn.sent
@@ -77,12 +75,12 @@ def test_form_page():
 def test_404_page():
     conn = FakeConnection("GET /yolo HTTP/1.0\r\n\r\n")
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     print conn.sent
 
     assert conn.sent.startswith('HTTP/1.0 404 Not Found\r\n')
-    assert 'Maybe someday we\'ll have /yolo' in conn.sent
+    assert 'Maybe someday we\'ll have a cool /404' in conn.sent
 
 # Tests GET version of form submission
 
@@ -93,7 +91,7 @@ def test_submit_page():
  /submit?firstname={}&lastname={}\
  HTTP/1.0\r\n\r\n".format(first, last))
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert 'Hello, Ms. {} {}'.format(first, last) in conn.sent
@@ -116,7 +114,7 @@ firstname={}&lastname={}".format(first, last)
     
     conn = FakeConnection(header_message)
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert 'Hello, Ms. {} {}'.format(first, last) in conn.sent
@@ -145,7 +143,7 @@ value\r\n\
 
     conn = FakeConnection(header_message)
 
-    server.handle_connection(conn)
+    server.handle_connection(conn, '3748')
 
     assert conn.sent.startswith('HTTP/1.0 200 OK\r\n')
     assert 'Hello, Ms. {} {}'.format(first, last) in conn.sent
